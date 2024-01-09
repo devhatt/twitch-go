@@ -1,11 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"hatbot-twitch/client"
 	"hatbot-twitch/configs"
 	"hatbot-twitch/helpers"
 	"hatbot-twitch/webhook"
-	"time"
 
 	"github.com/gempir/go-twitch-irc/v4"
 )
@@ -17,17 +17,17 @@ func main() {
 	}
 
 	t := client.NewTwitchClient()
-	helpers.GetBearerToken()
+	urlWebhook := cfg.DSCWebHookOctopost
 
 	t.OnMessage(func(message twitch.PrivateMessage) {
-		var urlWebhook string
-		now := time.Now().Hour()
-		if now >= 14 && now <= 15 {
-			urlWebhook = cfg.DSCWebHookOctopost
+		if message.Message == "-pet" && helpers.ValidUsers(message.User.Name) {
+			urlWebhook = cfg.DSCWebHookPetDex
+			fmt.Println("WebHook alterado para PetDex")
 		}
 
-		if now >= 16 && now <= 17 {
-			urlWebhook = cfg.DSCWebHookPetDex
+		if message.Message == "-octo" && helpers.ValidUsers(message.User.Name) {
+			urlWebhook = cfg.DSCWebHookOctopost
+			fmt.Println("WebHook alterado para Octopost")
 		}
 
 		err = webhook.SendMessage(message, urlWebhook)
@@ -36,6 +36,7 @@ func main() {
 		}
 	})
 
+	fmt.Println("Usando Webhook da Octopost")
 	t.JoinChannel("devhatt")
 
 	err = t.Client.Connect()
